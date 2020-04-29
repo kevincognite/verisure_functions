@@ -5,10 +5,13 @@ from datetime import datetime
 from cognite.client.data_classes import Asset
 from cognite.client.data_classes import TimeSeries
 from cognite.client import CogniteClient
-
 import os
-
 import verisure
+
+username = os.environ["USERNAME"]
+password = os.environ["PASSWORD"]
+
+
 
 # Live update Alarm and Lock
 def f(x):
