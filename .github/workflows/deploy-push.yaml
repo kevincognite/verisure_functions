@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        functions: [verisure_functions]
+        functions: [verisure]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
