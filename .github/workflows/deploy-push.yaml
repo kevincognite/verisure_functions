@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Deploy
-        uses: verisure/deploy-function-python@master
+        uses: andeplane/deploy-function-python@master
         with:
           cdf_project: verisure
           cdf_base_url: https://api.cognitedata.com
