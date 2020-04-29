@@ -1,5 +1,7 @@
 import requests
 import datetime
+import time
+from datetime import datetime
 from cognite.client.data_classes import Asset
 from cognite.client.data_classes import TimeSeries
 from cognite.client import CogniteClient
@@ -7,11 +9,6 @@ from cognite.client import CogniteClient
 import os
 
 import verisure
-
-username = secrets.USERNAME
-password = secrets.PASSWORD
-apikey = secrets.COGNITE_API_KEY
-
 
 # Live update Alarm and Lock
 def f(x):
@@ -28,7 +25,7 @@ def g(x):
     }[x]
 
 
-def stream_verisure_data():
+def stream_verisure_data(client):
     # endpoints = [["_Alarm_","armState"], ["_Door_", "doorLockStatusList"], ["_Climate_", "climateValues"]]
     # print ("Started while loop at " + str(time.gmtime()))
     # while True:
@@ -57,13 +54,23 @@ def stream_verisure_data():
             datetime_object_locked = datetime.strptime(date_locked.replace("T", "-").replace(".000Z", "").replace(":", "-"),
                                                '%Y-%m-%d-%H-%M-%S')
 
-            # for statusTy      pe, date in Alarm_data.items():
+            # for statusType, date in Alarm_data.items():
+            
             try:
-                timeseries.post_datapoints(owner+"Alarm_bool", [dto.Datapoint(datetime_object_alarm, f(Alarm_data['statusType']))])
-                timeseries.post_datapoints(owner+"Alarm", [dto.Datapoint(datetime_object_alarm, Alarm_data['statusType'])])
-                timeseries.post_datapoints(owner+"Lock_bool",
-                                           [dto.Datapoint(datetime_object_locked, g(Locked_data['currentLockState']))])
-                timeseries.post_datapoints(owner+"Lock", [dto.Datapoint(datetime_object_locked, Locked_data['currentLockState'])])
+                datapoints = []
+                datapoints.append((datetime_object_alarm, f(Alarm_data['statusType'])))
+                client.datapoints.insert(datapoints,external_id=owner+"Alarm_bool")
+                datapoints = []
+                datapoints.append((datetime_object_alarm, Alarm_data['statusType']))
+                client.datapoints.insert(datapoints,external_id=owner+"Alarm")
+                
+                datapoints = []
+                datapoints.append((datetime_object_alarm, g(Locked_data['currentLockState'])))
+                client.datapoints.insert(datapoints,external_id=owner+"Lock_bool")
+                datapoints = []
+                datapoints.append((datetime_object_alarm, Locked_data['currentLockState']))
+                client.datapoints.insert(datapoints,external_id=owner+"Lock")
+                
                 for sensor in Climate_data:
                     temperature = sensor['temperature']
                     name = sensor['deviceLabel'].replace(" ", "-")
@@ -75,9 +82,14 @@ def stream_verisure_data():
                     datetime_object = datetime.strptime(date.replace("T", "-").replace(".000Z", "").replace(":", "-"),
                                                         '%Y-%m-%d-%H-%M-%S')
                     try:
-                        timeseries.post_datapoints(name + "-temp", [dto.Datapoint(datetime_object, temperature)])
+                        datapoints = []
+                        datapoints.append((datetime_object, temperature))
+                        client.datapoints.insert(datapoints,external_id=name + "-temp")
+                        
                         try:
-                            timeseries.post_datapoints(name + "-humidity", [dto.Datapoint(datetime_object, humidity)])
+                            datapoints = []
+                            datapoints.append((datetime_object, humidity))
+                            client.datapoints.insert(datapoints,external_id=name + "-humidity")
                         except:
                             print("No humidity")
                     except:
@@ -85,7 +97,7 @@ def stream_verisure_data():
                         print(name)
             except:
                 print("Failed to insert datapoint in CDP")
-            time.sleep(1)
+            time.sleep(60)
 
 
 if __name__ == "__main__":
@@ -93,5 +105,5 @@ if __name__ == "__main__":
     session.login()
     session._get_installations()
     project = "verisure"
-    config.configure_session(api_key=apikey, project=project, cookies=None)
-    stream_verisure_data()
+    client = CogniteClient()
+    stream_verisure_data(client)
