@@ -23,4 +23,4 @@ jobs:
           cdf_base_url: https://api.cognitedata.com
           cdf_deployment_credentials: ${{ secrets.COGNITE_API_KEY }}
           cdf_function_credentials: ${{ secrets.COGNITE_API_KEY }}
-          function_path: ${{ matrix.functions }}
+          function_path: ${{ matrix.functions }} 
